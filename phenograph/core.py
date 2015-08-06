@@ -197,9 +197,9 @@ def runlouvain(filename):
 
     # Determine if we're using Windows or Mac/Linux
     if platform.system() == "Windows":
-        convert_binary = "/convert.exe"
-        community_binary = "/community.exe"
-        hierarchy_binary = "/hierarchy.exe"
+        convert_binary = "\convert.exe"
+        community_binary = "\community.exe"
+        hierarchy_binary = "\hierarchy.exe"
     else:
         convert_binary = "/convert"
         community_binary = "/community"
