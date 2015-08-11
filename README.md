@@ -27,6 +27,6 @@ To run basic clustering:
 import phenograph
 communities, graph, Q = phenograph.cluster(data)
 ```
-For a dataset of $N$ rows, `communities` will be a length $N$ vector of integers specifying a community assignment for each row
-in the data. Any rows assigned $-1$ were identified as *outliers* and should not be considered as a member of any community.
-`graph` is a $N x N$ scipy.sparse (adjacency) matrix representing the graph used for community detection. `Q` is the modularity score for `communities` as applied to `graph`.
+For a dataset of *N* rows, `communities` will be a length *N* vector of integers specifying a community assignment for each row
+in the data. Any rows assigned -1 were identified as *outliers* and should not be considered as a member of any community.
+`graph` is a *N* x *N* scipy.sparse (adjacency) matrix representing the graph used for community detection. `Q` is the modularity score for `communities` as applied to `graph`.
