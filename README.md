@@ -31,7 +31,7 @@ For a dataset of *N* rows, `communities` will be a length *N* vector of integers
 in the data. Any rows assigned -1 were identified as *outliers* and should not be considered as a member of any community.
 `graph` is a *N* x *N* scipy.sparse (adjacency) matrix representing the graph used for community detection. `Q` is the modularity score for `communities` as applied to `graph`.
 
-If you use PhenoGraph in work you intend to publish, please cite our paper:
+If you use PhenoGraph in work you publish, please cite our paper:
 ```
 @article{Levine_PhenoGraph_2015,
   doi = {10.1016/j.cell.2015.05.047},
