@@ -8,7 +8,7 @@ setup(
     author_email="jl3545@columbia.edu",
     packages=find_packages(),
     url="https://github.com/jacoblevine/PhenoGraph",
-    license="LICENSE.md",
+    license="LICENSE",
     long_description=open("README.md").read(),
     install_requires=open("requirements.txt").read()
 )

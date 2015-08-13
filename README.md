@@ -33,15 +33,17 @@ in the data. Any rows assigned -1 were identified as *outliers* and should not b
 
 If you use PhenoGraph in work you intend to publish, please cite our paper:
 ```
-@article{levine_phenograph_2015,
-	title = {Data-{Driven} {Phenotypic} {Dissection} of {AML} {Reveals} {Progenitor}-like {Cells} that {Correlate} with {Prognosis}},
-	volume = {162},
-	issn = {1097-4172},
-	doi = {10.1016/j.cell.2015.05.047},
-	journal = {Cell},
-	author = {Levine, Jacob H. and Simonds, Erin F. and Bendall, Sean C. and Davis, Kara L. and Amir, El-Ad D. and Tadmor, Michelle D. and Litvin, Oren and Fienberg, Harris G. and Jager, Astraea and Zunder, Eli R. and Finck, Rachel and Gedman, Amanda L. and Radtke, Ina and Downing, James R. and Pe'er, Dana and Nolan, Garry P.},
-	year = {2015},
-	pmid = {26095251},
-	pages = {184--197}
+@article{Levine_PhenoGraph_2015,
+  doi = {10.1016/j.cell.2015.05.047},
+  url = {http://dx.doi.org/10.1016/j.cell.2015.05.047},
+  year  = {2015},
+  month = {jul},
+  publisher = {Elsevier {BV}},
+  volume = {162},
+  number = {1},
+  pages = {184--197},
+  author = {Jacob H. Levine and Erin F. Simonds and Sean C. Bendall and Kara L. Davis and El-ad D. Amir and Michelle D. Tadmor and Oren Litvin and Harris G. Fienberg and Astraea Jager and Eli R. Zunder and Rachel Finck and Amanda L. Gedman and Ina Radtke and James R. Downing and Dana Pe'er and Garry P. Nolan},
+  title = {Data-Driven Phenotypic Dissection of {AML} Reveals Progenitor-like Cells that Correlate with Prognosis},
+  journal = {Cell}
 }
 ```
