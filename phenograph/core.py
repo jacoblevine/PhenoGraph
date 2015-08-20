@@ -189,7 +189,8 @@ def runlouvain(filename):
     print('Running Louvain modularity optimization', flush=True)
     
     # Use package location to find Louvain code
-    lpath = os.path.abspath(resource_filename(Requirement.parse("PhenoGraph"), 'louvain'))
+    # lpath = os.path.abspath(resource_filename(Requirement.parse("PhenoGraph"), 'louvain'))
+    lpath = os.path.join(os.path.dirname(__file__), 'louvain')
     try:
         assert os.path.isdir(lpath)
     except AssertionError:
