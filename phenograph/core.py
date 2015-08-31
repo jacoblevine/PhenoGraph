@@ -6,7 +6,6 @@ import time
 import re
 import os
 import platform
-from pkg_resources import Requirement, resource_filename
 
 
 def find_neighbors(data, k=30, dview=None, metric='euclidean'):

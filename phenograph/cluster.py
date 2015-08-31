@@ -10,9 +10,10 @@ import os
 import uuid
 
 
-def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, dview=None, shutdown=False, jaccard=True):
+def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccard=True,
+            use_parallel=False, dview=None, shutdown=False):
     """
-    Run PhenoGraph clustering
+    PhenoGraph clustering
 
     :param data: Numpy ndarray of data to cluster
     :param k: Number of nearest neighbors to use in first step of graph construction
@@ -20,8 +21,16 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, dview=
         The graph construction process produces a directed graph, which is symmetrized by one of two methods (see below)
     :param prune: Whether to symmetrize by taking the average (prune=False) or produce (prune=True) between the graph
         and its transpose
-    :param dview: Instance of IPython.parallel DirectView object, for parallel computing
-    :param shutdown: Whether to shutdown dview after the code is run
+    :param min_cluster_size: Cells that end up in a cluster smaller than min_cluster_size are considered outliers
+        and are assigned to -1 in the cluster labels
+    :param jaccard: If True, use Jaccard metric between k-neighborhoods to build graph.
+        If False, use a Gaussian kernel.
+    :param use_parallel: If True, perform nearest neighbor search in parallel using IPython.
+        If True while dview=None (see below), launch a new hub and engines
+    :param dview: Instance of IPython.parallel DirectView object for parallel computing.
+        Overrides use_parallel setting: provided dview will be used regardless of use_parallel is True or False
+    :param shutdown: Whether to shut down dview after the code is executed
+
     :return communities: numpy integer array of community assignments for each row in data
     :return graph: numpy sparse array of the graph that was used for clustering
     :return Q: the modularity score for communities on graph
@@ -44,9 +53,8 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, dview=
         print("Setting directed=False because prune=True")
         directed = False
 
-    # If nrows > ~30k, we'll use iPython parallelism
     # If direct view is passed, we don't need to go through any of this
-    if (data.shape[0] > 30000) and dview is None:
+    if use_parallel and dview is None:
 
         kernel = parallel_jaccard_kernel
 
@@ -102,6 +110,9 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, dview=
     else:
         kernel = jaccard_kernel
         kernelargs = {}  # (idx will be added to kernelargs later)
+        if data.shape[0] > 50000:
+            print("Computing nearest neighbors on {} cells. Consider using the parallel implementation "
+                  "for data of this size.".format(data.shape[0]))
 
     # Start timer
     tic = time.time()
