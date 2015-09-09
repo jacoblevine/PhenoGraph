@@ -5,7 +5,7 @@ import subprocess
 import time
 import re
 import os
-import platform
+import sys
 
 
 def find_neighbors(data, k=30, dview=None, metric='euclidean'):
@@ -195,16 +195,27 @@ def runlouvain(filename):
     except AssertionError:
         print("Could not find Louvain code, tried: {}".format(lpath), flush=True)
 
-    # Determine if we're using Windows or Mac/Linux
-    if platform.system() == "Windows":
-        convert_binary = "\convert.exe"
-        community_binary = "\community.exe"
-        hierarchy_binary = "\hierarchy.exe"
+    # Determine if we're using Windows, Mac, or Linux
+    if sys.platform == "win32" or sys.platform == "cygwin":
+        convert_binary = "convert.exe"
+        community_binary = "community.exe"
+        hierarchy_binary = "hierarchy.exe"
+    elif sys.platform.startswith("linux"):
+        convert_binary = "linux-convert"
+        community_binary = "linux-community"
+        hierarchy_binary = "linux-hierarchy"
+    elif sys.platform == "darwin":
+        convert_binary = "convert"
+        community_binary = "community"
+        hierarchy_binary = "hierarchy"
     else:
-        convert_binary = "/convert"
-        community_binary = "/community"
-        hierarchy_binary = "/hierarchy"
-    
+        raise RuntimeError("Operating system could not be determined or is not supported. "
+                           "sys.platform == {}".format(sys.platform), flush=True)
+    # Prepend appropriate path separator
+    convert_binary = os.path.sep + convert_binary
+    community_binary = os.path.sep + community_binary
+    hierarchy_binary = os.path.sep + hierarchy_binary
+
     tic = time.time()
 
     # run convert
