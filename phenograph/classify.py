@@ -99,8 +99,8 @@ def classify(train, test, k=30, dview=None, metric='euclidean'):
     Semi-supervised classification by random walks on a graph
     :param train: list of numpy arrays. Each array has a row for each class observation
     :param test: numpy array of unclassified data
-    :return c: class assignments for each row in train
-    :return P: class probabilities for each row in train
+    :return c: class assignment for each row in test
+    :return P: class probabilities for each row in test
     """
     data, labels = preprocess(train, test)
     # Build graph
