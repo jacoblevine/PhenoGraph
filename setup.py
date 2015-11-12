@@ -13,7 +13,7 @@ setup(
     author_email="jl3545@columbia.edu",
     packages=find_packages(),
     package_data={
-        '': ['louvain/convert*', 'louvain/community*', 'louvain/hierarchy*']
+        '': ['louvain/*convert*', 'louvain/*community*', 'louvain/*hierarchy*']
     },
     include_package_data=True,
     zip_safe=False,
