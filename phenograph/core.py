@@ -245,7 +245,8 @@ def runlouvain(filename):
         run += 1
 
         # continue only if we've reached a higher modularity than before
-        if q[-1] > Q:
+        # if q[-1] > Q:
+        if q[-1] - Q > .001:
 
             Q = q[-1]
             updated = run
