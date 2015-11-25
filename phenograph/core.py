@@ -231,7 +231,7 @@ def runlouvain(filename):
     Q = 0
     run = 0
     updated = 0
-    while run - updated < 20 and run < 100:
+    while run - updated < 20 and run < 100 and (time.time() - tic) < 300:
 
         # run community
         fout = open(filename + '.tree', 'w')
