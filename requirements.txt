@@ -1,5 +1,4 @@
 setuptools >= 18.0.1
-ipython >= 3.2.0
 numpy >= 1.9.2
 scipy >= 0.16.0
-scikit_learn >= 0.16.1
+scikit_learn >= 0.17
