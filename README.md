@@ -1,24 +1,25 @@
-Welcome to PhenoGraph for Python!
-================================
+PhenoGraph for Python3
+======================
 
 [PhenoGraph](http://www.cell.com/cell/abstract/S0092-8674(15)00637-6) is a clustering method designed for 
 high-dimensional single-cell data. It works by creating a graph ("network") representing phenotypic similarities 
 between cells and then identifying communities in this graph. 
 
-This software package includes compiled binaries that run community detection based on C++ code written by
+This implementation is written in Python3 and depends only on `scikit-learn ( >= 0.17)` and its dependencies.  
+
+This software package includes compiled binaries that run community detection based on C++ code written by 
 E. Lefebvre and J.-L. Guillaume in 2008 (["Louvain method"](https://sites.google.com/site/findcommunities/)). The code
-has been altered to interface more efficiently with the Python code here. It should work on reasonably new Mac and
-Windows machines.
+has been altered to interface more efficiently with the Python code here. It should work on reasonably current Linux, 
+Mac and Windows machines.
 
 To install PhenoGraph, simply run the setup script:
 
 ```
-python setup.py install
+python3 setup.py install
 ```
 
-Currently, expected use is within an interactive terminal running Python **3.x**. The data are expected to be passed as 
-a `numpy.ndarray`. Support is provided to take advantage of IPython's parallel computing packages, which greatly 
-enhances speed for large data sets.
+Expected use is within a script or interactive kernel running Python3x. Data are expected to be passed as a `numpy.ndarray`.
+When applicable, the code uses CPU multicore parallelism via `multiprocessing`. 
  
 To run basic clustering:
 

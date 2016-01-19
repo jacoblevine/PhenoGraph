@@ -8,7 +8,7 @@ if sys.version_info.major != 3:
 setup(
     name="PhenoGraph",
     description="Graph-based clustering for high-dimensional single-cell data",
-    version="1.3",
+    version="1.4",
     author="Jacob Levine",
     author_email="jl3545@columbia.edu",
     packages=find_packages(),

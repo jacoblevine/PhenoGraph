@@ -1,5 +1,7 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+import multiprocessing
+import ctypes
 from scipy import sparse as sp
 import subprocess
 import time
@@ -8,39 +10,42 @@ import os
 import sys
 
 
-def find_neighbors(data, k=30, dview=None, metric='euclidean'):
+def find_neighbors(data, k=30, metric='minkowski', p=2, n_jobs=-1):
     """
-    Wraps sklearn.neighbors.NearestNeighbors, supporting IPython parallel usage
+    Wraps sklearn.neighbors.NearestNeighbors
+    Find k nearest neighbors of every point in data and delete self-distances
 
     :param data: n-by-d data matrix
     :param k: number for nearest neighbors search
-    :param dview: direct view of ipcluster, if using parallel computation
+    :param metric: string naming distance metric used to define neighbors
+    :param p: if metric == "minkowski", p=2 --> euclidean, p=1 --> manhattan; otherwise ignored.
+    :param n_jobs:
     :return d: n-by-k matrix of distances
     :return idx: n-by-k matrix of neighbor indices
     """
-    if metric == 'cosine' or metric == 'correlation':
-        algorithm = 'brute'
+    if metric.lower() == "euclidean":
+        metric = "minkowski"
+        p = 2
+    if metric.lower() == "manhattan":
+        metric = "minkowski"
+        p = 1
+    if metric.lower() == "minkowski":
+        algorithm = "kd_tree"
+    elif metric.lower() == "cosine" or metric.lower() == "correlation":
+        algorithm = "brute"
     else:
-        algorithm = 'ball_tree'
+        algorithm = "auto"
 
-    if dview is not None:
-
-        # Build ball tree
-        nbrs = NearestNeighbors(n_neighbors=k+1, algorithm=algorithm).fit(data)
-        # Send data to workers
-        dview.push(dict(nbrs=nbrs))
-        dview.scatter('data', data)
-        # Run nearest-neighbor search on workers
-        dview.execute("d, idx = nbrs.kneighbors(data)")
-        # Gather results
-        idx = np.array(list(dview.gather('idx')))
-        d = np.array(list(dview.gather('d')))
-
-    else:
-        nbrs = NearestNeighbors(n_neighbors=k+1, algorithm=algorithm).fit(data)
-        d, idx = nbrs.kneighbors(data)
-
-    # remove self-distance
+    print("Finding {} nearest neighbors using {} metric and '{}' algorithm".format(k, metric, algorithm),
+          flush=True)
+    nbrs = NearestNeighbors(n_neighbors=k+1,        # k+1 because results include self
+                            n_jobs=-1,              # use multiple cores if possible
+                            metric=metric,          # primary metric
+                            p=p,                    # if metric == "minkowski", 2 --> euclidean, 1 --> manhattan
+                            algorithm=algorithm     # kd_tree is fastest for minkowski metrics
+                            ).fit(data)
+    d, idx = nbrs.kneighbors(data)
+    # Remove self-distances
     idx = np.delete(idx, 0, axis=1)
     d = np.delete(d, 0, axis=1)
     return d, idx
@@ -83,55 +88,63 @@ def gaussian_kernel(idx, d, sigma):
 
 def jaccard_kernel(idx):
     """
-    Compute jaccard coefficient between nearest-neighbor sets
+    Compute Jaccard coefficient between nearest-neighbor sets
     :param idx: numpy array of nearest-neighbor indices
     :return (i, j, s): tuple of indices and jaccard coefficients, suitable for constructing COO matrix
     """
     n, k = idx.shape
-    i = [np.tile(x, (k, )) for x in range(n)]
-    i = np.concatenate(np.array(i))
-    j = np.concatenate(idx)
     s = list()
-    for q in range(n):
-        sharedneighbors = [len(np.intersect1d(idx[q], hood)) for hood in idx[idx[q]]]
-        s.extend([w / (2 * k - w) for w in sharedneighbors])
+    for i in range(n):
+        shared_neighbors = np.fromiter((len(set(idx[i]).intersection(set(idx[j]))) for j in idx[i]), dtype=float)
+        s.extend(shared_neighbors / (2 * k - shared_neighbors))
+    i = np.concatenate(np.array([np.tile(x, (k, )) for x in range(n)]))
+    j = np.concatenate(idx)
     return i, j, s
 
 
-def parallel_jaccard_kernel(idx, dview):
+def calc_jaccard(i):
     """
-    Same as jaccard_kernel but accepts an IPython parallel dview instance
-    to perform the computations in parallel on multiple cores
+    For shared array idx, compute jaccard coefficient between point i and i's direct neighbors
+    Function must be defined at module level to work with multiprocessing.Pool
+    :param i:
+    :return idx[i]: Indices of i's neighbors
+    :return coefficients: Jaccard coefficients for each of i's neighbors
+    """
+    coefficients = np.fromiter((len(set(idx[i]).intersection(set(idx[j]))) for j in idx[i]), dtype=float)
+    coefficients /= (2 * idx.shape[1] - coefficients)
+    return idx[i], coefficients
+
+
+def parallel_jaccard_kernel(idx):
+
+    """
+    Compute Jaccard coefficient between nearest-neighbor sets
+    via multiprocessing.Pool
     :param idx:
-    :param dview:
     :return (i, j, s):
     """
-    def calc_jaccard(idx, x):
-        s = []
-        _, k = idx.shape
-        for i in x:
-            sharedneighbors = [len(np.intersect1d(idx[i], hood)) for hood in idx[idx[i]]]
-            s.extend([w / (2 * k - w) for w in sharedneighbors])
-        return s
 
-    # In case there is no active cluster, run serial version
-    if dview is not None:
+    shared_array_base = multiprocessing.Array(ctypes.c_int, idx.size, lock=False)
+    shared_idx = np.frombuffer(shared_array_base, dtype=ctypes.c_int)
+    shared_idx = shared_idx.reshape(idx.shape)
+    np.copyto(shared_idx, idx)
+    assert shared_idx.base.base == shared_array_base
+    setattr(sys.modules[__name__], "idx", shared_idx)
 
-        n, k = idx.shape
-        i = [np.tile(x, (k, )) for x in range(n)]
-        i = np.concatenate(np.array(i))
-        j = np.concatenate(idx)
+    n = idx.shape[0]
+    pool = multiprocessing.Pool()
+    jaccard_values = pool.map(calc_jaccard, range(n))
+    assert len(jaccard_values) == n
+    del shared_idx
 
-        dview.push(dict(calc_jaccard=calc_jaccard, idx=idx))
-        dview.scatter('x', np.arange(n))
-        dview.execute("s = calc_jaccard(idx, x)")
-        s = list(dview.gather('s'))
+    graph = sp.lil_matrix((n, n), dtype=float)
+    for i, tup in enumerate(jaccard_values):
+        graph.rows[i] = tup[0]
+        graph.data[i] = tup[1]
 
-    else:
-
-        i, j, s = jaccard_kernel(idx)
-
-    return i, j, s
+    i, j = graph.nonzero()
+    s = graph.tocoo().data
+    return i, j, s[s > 0]
 
 
 def graph2binary(filename, graph):
@@ -165,17 +178,20 @@ def graph2binary(filename, graph):
     print("Wrote graph to binary file in {} seconds".format(time.time() - tic))
 
 
-def runlouvain(filename):
+def runlouvain(filename, max_runs=100, time_limit=300, tol=1e-4):
     """
     From binary graph file filename.bin, optimize modularity by running multiple random re-starts of
     the Louvain C++ code.
 
     Louvain is run repeatedly until modularity has not increased in some number (20) of runs
-    or if the total number of runs exceeds some larger number (100)
+    or if the total number of runs exceeds some larger number (max_runs) OR if a time limit (time_limit) is exceeded
 
-    :param filename:
-    :return communities:
-    :return Q:
+    :param filename: *.bin file generated by graph2binary
+    :param max_runs: maximum number of times to repeat Louvain before ending iterations and taking best result
+    :param time_limit: maxumum number of seconds to repeat Louvain before ending iteratins and taking best result
+    :param tol: number of significant figures to consider in evaluating whether modularity has increased
+    :return communities: community assignments
+    :return Q: modularity score corresponding to `communities`
     """
     def get_modularity(msg):
         pattern = re.compile('modularity increased from -*0.\d+ to 0.\d+')
@@ -231,7 +247,7 @@ def runlouvain(filename):
     Q = 0
     run = 0
     updated = 0
-    while run - updated < 20 and run < 100 and (time.time() - tic) < 300:
+    while run - updated < 20 and run < max_runs and (time.time() - tic) < time_limit:
 
         # run community
         fout = open(filename + '.tree', 'w')
@@ -245,8 +261,7 @@ def runlouvain(filename):
         run += 1
 
         # continue only if we've reached a higher modularity than before
-        # if q[-1] > Q:
-        if q[-1] - Q > .001:
+        if q[-1] - Q > tol:
 
             Q = q[-1]
             updated = run
