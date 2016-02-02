@@ -29,7 +29,7 @@ def sort_by_size(clusters, min_size):
 
 
 def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccard=True,
-            primary_metric='euclidean', n_jobs=-1):
+            primary_metric='euclidean', n_jobs=-1, q_tol=1e-3):
     """
     PhenoGraph clustering
 
@@ -48,6 +48,7 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
         Note that performance will be slower for correlation and cosine.
     :param n_jobs: Nearest Neighbors and Jaccard coefficients will be computed in parallel using n_jobs. If n_jobs=-1,
      the number of jobs is determined automatically
+    :param q_tol: Tolerance (i.e., precision) for monitoring modularity optimization
 
     :return communities: numpy integer array of community assignments for each row in data
     :return graph: numpy sparse array of the graph that was used for clustering
@@ -95,7 +96,7 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
     # write to file with unique id
     uid = uuid.uuid1().hex
     graph2binary(uid, graph)
-    communities, Q = runlouvain(uid)
+    communities, Q = runlouvain(uid, tol=q_tol)
     print("PhenoGraph complete in {} seconds".format(time.time() - tic), flush=True)
     communities = sort_by_size(communities, min_cluster_size)
     # clean up
