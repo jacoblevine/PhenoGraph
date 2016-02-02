@@ -18,7 +18,7 @@ To install PhenoGraph, simply run the setup script:
 
 Or use:
 
-    pip install git+https://github.com/jacoblevine/phenograph.git
+    pip3 install git+https://github.com/jacoblevine/phenograph.git
 
 
 Expected use is within a script or interactive kernel running Python `3.x`. Data are expected to be passed as a `numpy.ndarray`.
@@ -30,7 +30,7 @@ To run basic clustering:
     communities, graph, Q = phenograph.cluster(data)
 
 For a dataset of *N* rows, `communities` will be a length *N* vector of integers specifying a community assignment for each row
-in the data. Any rows assigned -1 were identified as *outliers* and should not be considered as a member of any community.
+in the data. Any rows assigned `-1` were identified as *outliers* and should not be considered as a member of any community.
 `graph` is a *N* x *N* `scipy.sparse` matrix representing the weighted graph used for community detection. 
 `Q` is the modularity score for `communities` as applied to `graph`.
 
