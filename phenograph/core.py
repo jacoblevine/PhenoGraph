@@ -136,6 +136,7 @@ def parallel_jaccard_kernel(idx):
     jaccard_values = pool.map(calc_jaccard, range(n))
     assert len(jaccard_values) == n
     del shared_idx
+    pool.terminate()
 
     graph = sp.lil_matrix((n, n), dtype=float)
     for i, tup in enumerate(jaccard_values):
