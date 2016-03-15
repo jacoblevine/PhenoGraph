@@ -5,7 +5,7 @@ PhenoGraph for Python3
 high-dimensional single-cell data. It works by creating a graph ("network") representing phenotypic similarities 
 between cells and then identifying communities in this graph. 
 
-This implementation is written in Python3 and depends only on `scikit-learn ( >= 0.17)` and its dependencies.  
+This implementation is written in Python3 and depends only on `scikit-learn (>= 0.17)` and its dependencies.  
 
 This software package includes compiled binaries that run community detection based on C++ code written by 
 E. Lefebvre and J.-L. Guillaume in 2008 (["Louvain method"](https://sites.google.com/site/findcommunities/)). The code
@@ -49,3 +49,20 @@ If you use PhenoGraph in work you publish, please cite our paper:
       title = {Data-Driven Phenotypic Dissection of {AML} Reveals Progenitor-like Cells that Correlate with Prognosis},
       journal = {Cell}
     }
+
+Release Notes
+-------------
+
+### Version 1.4.1
+
+ * After observing inconsistent behavior of sklearn.NearestNeighbors with respect to inclusion of self-neighbors,
+ the code now checks that self-neighbors have been included before deleting those entries
+ 
+### Version 1.4
+
+ * The dependence on IPython and/or ipyparallel has been removed. Instead the native `multiprocessing` package is used.
+ * Multiple CPUs are used by default for computation of nearest neighbors and Jaccard graph.
+ 
+### Version 1.3
+
+ * Proper support for Linux

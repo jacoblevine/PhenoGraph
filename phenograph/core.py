@@ -45,9 +45,13 @@ def find_neighbors(data, k=30, metric='minkowski', p=2, n_jobs=-1):
                             algorithm=algorithm     # kd_tree is fastest for minkowski metrics
                             ).fit(data)
     d, idx = nbrs.kneighbors(data)
-    # Remove self-distances
-    idx = np.delete(idx, 0, axis=1)
-    d = np.delete(d, 0, axis=1)
+    # Remove self-distances if these are in fact included
+    if idx[0, 0] == 0:
+        idx = np.delete(idx, 0, axis=1)
+        d = np.delete(d, 0, axis=1)
+    else:  # Otherwise delete the _last_ column of d and idx
+        idx = np.delete(idx, -1, axis=1)
+        d = np.delete(d, -1, axis=1)
     return d, idx
 
 
