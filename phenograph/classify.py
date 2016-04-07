@@ -60,10 +60,11 @@ def random_walk_probabilities(A, labels):
     return P
 
 
-def create_graph(data, k=30, dview=None, metric='euclidean'):
+def create_graph(data, k=30, metric='euclidean', n_jobs=-1):
     # def _kernel(dxy, sigma=1):
     #     return np.exp(-dxy ** 2 / sigma)
-    _, idx = find_neighbors(data, k=k, dview=dview, metric=metric)
+
+    _, idx = find_neighbors(data, k=k, metric=metric, n_jobs=n_jobs)
     # affinities = np.apply_along_axis(lambda x: _kernel(x, x.std()), axis=1, arr=d)
     # n, k = idx.shape
     # i = [np.tile(x, (k, )) for x in range(n)]
@@ -94,7 +95,7 @@ def preprocess(train, test):
     return data, labels
 
 
-def classify(train, test, k=30, dview=None, metric='euclidean'):
+def classify(train, test, k=30, metric='euclidean', n_jobs=-1):
     """
     Semi-supervised classification by random walks on a graph
     :param train: list of numpy arrays. Each array has a row for each class observation
@@ -104,7 +105,7 @@ def classify(train, test, k=30, dview=None, metric='euclidean'):
     """
     data, labels = preprocess(train, test)
     # Build graph
-    A = create_graph(data, k, dview=dview, metric=metric)
+    A = create_graph(data, k, metric=metric, n_jobs=n_jobs)
     P = random_walk_probabilities(A, labels)
     c = np.argmax(P, axis=1)
     return c, P
