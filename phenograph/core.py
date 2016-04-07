@@ -39,7 +39,7 @@ def find_neighbors(data, k=30, metric='minkowski', p=2, n_jobs=-1):
     print("Finding {} nearest neighbors using {} metric and '{}' algorithm".format(k, metric, algorithm),
           flush=True)
     nbrs = NearestNeighbors(n_neighbors=k+1,        # k+1 because results include self
-                            n_jobs=-1,              # use multiple cores if possible
+                            n_jobs=n_jobs,              # use multiple cores if possible
                             metric=metric,          # primary metric
                             p=p,                    # if metric == "minkowski", 2 --> euclidean, 1 --> manhattan
                             algorithm=algorithm     # kd_tree is fastest for minkowski metrics
