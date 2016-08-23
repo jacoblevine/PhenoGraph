@@ -30,7 +30,7 @@ def find_neighbors(data, k=30, metric='minkowski', p=2, n_jobs=-1):
         metric = "minkowski"
         p = 1
     if metric.lower() == "minkowski":
-        algorithm = "kd_tree"
+        algorithm = "auto"
     elif metric.lower() == "cosine" or metric.lower() == "correlation":
         algorithm = "brute"
     else:
@@ -199,7 +199,8 @@ def runlouvain(filename, max_runs=100, time_limit=300, tol=1e-3):
     :return Q: modularity score corresponding to `communities`
     """
     def get_modularity(msg):
-        pattern = re.compile('modularity increased from -*0.\d+ to 0.\d+')
+        # pattern = re.compile('modularity increased from -*0.\d+ to 0.\d+')
+        pattern = re.compile('modularity increased from -*\d.\d+e*-*\d+ to \d.\d+')
         matches = pattern.findall(msg.decode())
         q = list()
         for line in matches:
