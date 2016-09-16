@@ -34,7 +34,7 @@ in the data. Any rows assigned `-1` were identified as *outliers* and should not
 `graph` is a *N* x *N* `scipy.sparse` matrix representing the weighted graph used for community detection. 
 `Q` is the modularity score for `communities` as applied to `graph`.
 
-If you use PhenoGraph in work you publish, please cite our paper:
+If you use PhenoGraph in work you publish, please cite our publication:
 
     @article{Levine_PhenoGraph_2015,
       doi = {10.1016/j.cell.2015.05.047},
@@ -53,6 +53,12 @@ If you use PhenoGraph in work you publish, please cite our paper:
 Release Notes
 -------------
 
+### Version 1.5
+
+ * `phenograph.cluster` can now take as input a square sparse matrix, which will be interpreted as a k-nearest neighbor graph. 
+ Note that this graph _must_ have uniform degree (i.e. the same value of k at every point).
+ * The default `time_limit` for Louvain iterations has been increased to a more generous 2000 seconds (~half hour)
+  
 ### Version 1.4.1
 
  * After observing inconsistent behavior of sklearn.NearestNeighbors with respect to inclusion of self-neighbors,
