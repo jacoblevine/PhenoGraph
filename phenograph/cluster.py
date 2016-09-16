@@ -33,11 +33,13 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
     """
     PhenoGraph clustering
 
-    :param data: Numpy ndarray of data to cluster
+    :param data: Numpy ndarray of data to cluster, or sparse matrix of k-nearest neighbor graph
+        If ndarray, n-by-d array of n cells in d dimensions
+        If sparse matrix, n-by-n adjacency matrix
     :param k: Number of nearest neighbors to use in first step of graph construction
     :param directed: Whether to use a symmetric (default) or asymmetric ("directed") graph
         The graph construction process produces a directed graph, which is symmetrized by one of two methods (see below)
-    :param prune: Whether to symmetrize by taking the average (prune=False) or produce (prune=True) between the graph
+    :param prune: Whether to symmetrize by taking the average (prune=False) or product (prune=True) between the graph
         and its transpose
     :param min_cluster_size: Cells that end up in a cluster smaller than min_cluster_size are considered outliers
         and are assigned to -1 in the cluster labels
@@ -69,8 +71,18 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
     # Start timer
     tic = time.time()
     # Go!
-    d, idx = find_neighbors(data, k=k, metric=primary_metric, n_jobs=n_jobs)
-    print("Neighbors computed in {} seconds".format(time.time() - tic), flush=True)
+    if isinstance(data, sp.spmatrix) and data.shape[0] == data.shape[1]:
+        print("Using neighbor information from provided graph, rather than computing neighbors directly", flush=True)
+        lilmatrix = data.tolil()
+        d = np.vstack(lilmatrix.data)  # distances
+        idx = np.vstack(lilmatrix.rows)  # neighbor indices by row
+        del lilmatrix
+        assert idx.shape[0] == data.shape[0]
+        k = idx.shape[1]
+    else:
+        d, idx = find_neighbors(data, k=k, metric=primary_metric, n_jobs=n_jobs)
+        print("Neighbors computed in {} seconds".format(time.time() - tic), flush=True)
+
     subtic = time.time()
     kernelargs['idx'] = idx
     # if not using jaccard kernel, use gaussian
