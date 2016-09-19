@@ -53,6 +53,10 @@ If you use PhenoGraph in work you publish, please cite our publication:
 Release Notes
 -------------
 
+### Version 1.5.1
+
+ * Make `louvain_time_limit` a parameter to `phenograph.cluster`
+
 ### Version 1.5
 
  * `phenograph.cluster` can now take as input a square sparse matrix, which will be interpreted as a k-nearest neighbor graph. 

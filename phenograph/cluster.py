@@ -29,7 +29,7 @@ def sort_by_size(clusters, min_size):
 
 
 def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccard=True,
-            primary_metric='euclidean', n_jobs=-1, q_tol=1e-3):
+            primary_metric='euclidean', n_jobs=-1, q_tol=1e-3, louvain_time_limit=2000):
     """
     PhenoGraph clustering
 
@@ -49,8 +49,10 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
         Options include: {'euclidean', 'manhattan', 'correlation', 'cosine'}
         Note that performance will be slower for correlation and cosine.
     :param n_jobs: Nearest Neighbors and Jaccard coefficients will be computed in parallel using n_jobs. If n_jobs=-1,
-     the number of jobs is determined automatically
+        the number of jobs is determined automatically
     :param q_tol: Tolerance (i.e., precision) for monitoring modularity optimization
+    :param louvain_time_limit: Maximum number of seconds to run modularity optimization. If exceeded
+        the best result so far is returned
 
     :return communities: numpy integer array of community assignments for each row in data
     :return graph: numpy sparse array of the graph that was used for clustering
@@ -108,7 +110,7 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
     # write to file with unique id
     uid = uuid.uuid1().hex
     graph2binary(uid, graph)
-    communities, Q = runlouvain(uid, tol=q_tol)
+    communities, Q = runlouvain(uid, tol=q_tol, time_limit=louvain_time_limit)
     print("PhenoGraph complete in {} seconds".format(time.time() - tic), flush=True)
     communities = sort_by_size(communities, min_cluster_size)
     # clean up
