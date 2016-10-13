@@ -53,6 +53,12 @@ If you use PhenoGraph in work you publish, please cite our publication:
 Release Notes
 -------------
 
+### Version 1.5.2
+
+ * Include simple parallel implementation of brute force nearest neighbors search using scipy's `cdist` and `multiprocessing`. This is now the default for nearest neighbors computations. It is typically more efficient than `kdtree`
+ and avoids memory issues that arise in `sklearn`'s implementation with large data sets
+ * Refactor `parallel_jaccard_kernel` to remove unnecessary use of `ctypes` and `multiprocessing.Array`.
+
 ### Version 1.5.1
 
  * Make `louvain_time_limit` a parameter to `phenograph.cluster`
@@ -61,12 +67,12 @@ Release Notes
 
  * `phenograph.cluster` can now take as input a square sparse matrix, which will be interpreted as a k-nearest neighbor graph. 
  Note that this graph _must_ have uniform degree (i.e. the same value of k at every point).
- * The default `time_limit` for Louvain iterations has been increased to a more generous 2000 seconds (~half hour)
+ * The default `time_limit` for Louvain iterations has been increased to a more generous 2000 seconds (~half hour).
   
 ### Version 1.4.1
 
  * After observing inconsistent behavior of sklearn.NearestNeighbors with respect to inclusion of self-neighbors,
- the code now checks that self-neighbors have been included before deleting those entries
+ the code now checks that self-neighbors have been included before deleting those entries.
  
 ### Version 1.4
 
@@ -75,4 +81,4 @@ Release Notes
  
 ### Version 1.3
 
- * Proper support for Linux
+ * Proper support for Linux.

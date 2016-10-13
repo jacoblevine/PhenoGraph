@@ -29,7 +29,8 @@ def sort_by_size(clusters, min_size):
 
 
 def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccard=True,
-            primary_metric='euclidean', n_jobs=-1, q_tol=1e-3, louvain_time_limit=2000):
+            primary_metric='euclidean', n_jobs=-1, q_tol=1e-3, louvain_time_limit=2000,
+            nn_method='brute'):
     """
     PhenoGraph clustering
 
@@ -53,6 +54,8 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
     :param q_tol: Tolerance (i.e., precision) for monitoring modularity optimization
     :param louvain_time_limit: Maximum number of seconds to run modularity optimization. If exceeded
         the best result so far is returned
+    :param nn_method: Whether to use brute force or kdtree for nearest neighbor search. For most high-dimensional
+        data sets, brute force (with parallel computation) performs faster than kdtree.
 
     :return communities: numpy integer array of community assignments for each row in data
     :return graph: numpy sparse array of the graph that was used for clustering
@@ -82,7 +85,7 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
         assert idx.shape[0] == data.shape[0]
         k = idx.shape[1]
     else:
-        d, idx = find_neighbors(data, k=k, metric=primary_metric, n_jobs=n_jobs)
+        d, idx = find_neighbors(data, k=k, metric=primary_metric, method=nn_method, n_jobs=n_jobs)
         print("Neighbors computed in {} seconds".format(time.time() - tic), flush=True)
 
     subtic = time.time()

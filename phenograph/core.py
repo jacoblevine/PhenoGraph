@@ -1,16 +1,18 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-import multiprocessing
-import ctypes
+from multiprocessing import Pool
+from contextlib import closing
+from itertools import repeat
 from scipy import sparse as sp
 import subprocess
 import time
 import re
 import os
 import sys
+from .bruteforce_nn import knnsearch
 
 
-def find_neighbors(data, k=30, metric='minkowski', p=2, n_jobs=-1):
+def find_neighbors(data, k=30, metric='minkowski', p=2, method='brute', n_jobs=-1):
     """
     Wraps sklearn.neighbors.NearestNeighbors
     Find k nearest neighbors of every point in data and delete self-distances
@@ -19,7 +21,9 @@ def find_neighbors(data, k=30, metric='minkowski', p=2, n_jobs=-1):
     :param k: number for nearest neighbors search
     :param metric: string naming distance metric used to define neighbors
     :param p: if metric == "minkowski", p=2 --> euclidean, p=1 --> manhattan; otherwise ignored.
+    :param method: 'brute' or 'kdtree'
     :param n_jobs:
+
     :return d: n-by-k matrix of distances
     :return idx: n-by-k matrix of neighbor indices
     """
@@ -38,13 +42,21 @@ def find_neighbors(data, k=30, metric='minkowski', p=2, n_jobs=-1):
 
     print("Finding {} nearest neighbors using {} metric and '{}' algorithm".format(k, metric, algorithm),
           flush=True)
-    nbrs = NearestNeighbors(n_neighbors=k+1,        # k+1 because results include self
-                            n_jobs=n_jobs,              # use multiple cores if possible
-                            metric=metric,          # primary metric
-                            p=p,                    # if metric == "minkowski", 2 --> euclidean, 1 --> manhattan
-                            algorithm=algorithm     # kd_tree is fastest for minkowski metrics
-                            ).fit(data)
-    d, idx = nbrs.kneighbors(data)
+    if method == 'kdtree':
+        nbrs = NearestNeighbors(n_neighbors=k+1,        # k+1 because results include self
+                                n_jobs=n_jobs,              # use multiple cores if possible
+                                metric=metric,          # primary metric
+                                p=p,                    # if metric == "minkowski", 2 --> euclidean, 1 --> manhattan
+                                algorithm=algorithm     # kd_tree is fastest for minkowski metrics
+                                ).fit(data)
+        d, idx = nbrs.kneighbors(data)
+
+    elif method == 'brute':
+        d, idx = knnsearch(data, k+1, metric)
+
+    else:
+        raise ValueError("Invalid argument to `method` parameters: {}".format(method))
+
     # Remove self-distances if these are in fact included
     if idx[0, 0] == 0:
         idx = np.delete(idx, 0, axis=1)
@@ -106,41 +118,22 @@ def jaccard_kernel(idx):
     return i, j, s
 
 
-def calc_jaccard(i):
-    """
-    For shared array idx, compute jaccard coefficient between point i and i's direct neighbors
-    Function must be defined at module level to work with multiprocessing.Pool
-    :param i:
-    :return idx[i]: Indices of i's neighbors
-    :return coefficients: Jaccard coefficients for each of i's neighbors
-    """
+def calc_jaccard(i, idx):
+    """Compute the Jaccard coefficient between i and i's direct neighbors"""
     coefficients = np.fromiter((len(set(idx[i]).intersection(set(idx[j]))) for j in idx[i]), dtype=float)
     coefficients /= (2 * idx.shape[1] - coefficients)
     return idx[i], coefficients
 
 
 def parallel_jaccard_kernel(idx):
+    """Compute Jaccard coefficient between nearest-neighbor sets in parallel
+    :param idx: n-by-k integer matrix of k-nearest neighbors
 
+    :return (i, j, s): row indices, column indices, and nonzero values for a sparse adjacency matrix
     """
-    Compute Jaccard coefficient between nearest-neighbor sets
-    via multiprocessing.Pool
-    :param idx:
-    :return (i, j, s):
-    """
-
-    shared_array_base = multiprocessing.Array(ctypes.c_int, idx.size, lock=False)
-    shared_idx = np.frombuffer(shared_array_base, dtype=ctypes.c_int)
-    shared_idx = shared_idx.reshape(idx.shape)
-    np.copyto(shared_idx, idx)
-    assert shared_idx.base.base == shared_array_base
-    setattr(sys.modules[__name__], "idx", shared_idx)
-
-    n = idx.shape[0]
-    pool = multiprocessing.Pool()
-    jaccard_values = pool.map(calc_jaccard, range(n))
-    assert len(jaccard_values) == n
-    del shared_idx
-    pool.terminate()
+    n = len(idx)
+    with closing(Pool()) as pool:
+        jaccard_values = pool.starmap(calc_jaccard, zip(range(n), repeat(idx)))
 
     graph = sp.lil_matrix((n, n), dtype=float)
     for i, tup in enumerate(jaccard_values):

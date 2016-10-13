@@ -2,3 +2,4 @@ setuptools >= 18.0.1
 numpy >= 1.9.2
 scipy >= 0.16.0
 scikit_learn >= 0.17
+psutil > 4
