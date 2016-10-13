@@ -73,9 +73,17 @@ def knnsearch(data, k, metric):
 
     n_chunks = determine_n_chunks(len(data), k)
 
-    with closing(Pool()) as pool:
-        result = pool.map(f, np.array_split(data, n_chunks))
+    if n_chunks > 2:
 
-    d, idx = zip(*result)
+        with closing(Pool()) as pool:
+            result = pool.map(f, np.array_split(data, n_chunks))
 
-    return np.vstack(d), np.vstack(idx)
+        d, idx = zip(*result)
+
+        d, idx = np.vstack(d), np.vstack(idx)
+
+    else:
+
+        d, idx = process_chunk(data, data, k, metric)
+
+    return d, idx
