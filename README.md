@@ -55,13 +55,13 @@ Release Notes
 
 ### Version 1.5.2
 
- * Include simple parallel implementation of brute force nearest neighbors search using scipy's `cdist` and `multiprocessing`. This is now the default for nearest neighbors computations. It is typically more efficient than `kdtree`
- and avoids memory issues that arise in `sklearn`'s implementation with large data sets
+ * Include simple parallel implementation of brute force nearest neighbors search using scipy's `cdist` and `multiprocessing`. This may be more efficient than `kdtree` on very large high-dimensional data sets
+ and avoids memory issues that arise in `sklearn`'s implementation.
  * Refactor `parallel_jaccard_kernel` to remove unnecessary use of `ctypes` and `multiprocessing.Array`.
 
 ### Version 1.5.1
 
- * Make `louvain_time_limit` a parameter to `phenograph.cluster`
+ * Make `louvain_time_limit` a parameter to `phenograph.cluster`.
 
 ### Version 1.5
 

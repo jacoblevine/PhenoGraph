@@ -30,7 +30,7 @@ def sort_by_size(clusters, min_size):
 
 def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccard=True,
             primary_metric='euclidean', n_jobs=-1, q_tol=1e-3, louvain_time_limit=2000,
-            nn_method='brute'):
+            nn_method='kdtree'):
     """
     PhenoGraph clustering
 
@@ -54,7 +54,7 @@ def cluster(data, k=30, directed=False, prune=False, min_cluster_size=10, jaccar
     :param q_tol: Tolerance (i.e., precision) for monitoring modularity optimization
     :param louvain_time_limit: Maximum number of seconds to run modularity optimization. If exceeded
         the best result so far is returned
-    :param nn_method: Whether to use brute force or kdtree for nearest neighbor search. For most high-dimensional
+    :param nn_method: Whether to use brute force or kdtree for nearest neighbor search. For very large high-dimensional
         data sets, brute force (with parallel computation) performs faster than kdtree.
 
     :return communities: numpy integer array of community assignments for each row in data
