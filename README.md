@@ -1,5 +1,9 @@
 PhenoGraph for Python3
 ======================
+**NOTE:** This repository is no longer actively maintained. For latests changes and/or issues
+please go to the fork at https://github.com/dpeerlab/phenograph.
+
+---
 
 [PhenoGraph](http://www.cell.com/cell/abstract/S0092-8674(15)00637-6) is a clustering method designed for 
 high-dimensional single-cell data. It works by creating a graph ("network") representing phenotypic similarities 
