@@ -1,7 +1,7 @@
 PhenoGraph for Python3
 ======================
-**NOTE:** This repository is no longer actively maintained. For latests changes and/or issues
-please go to the fork at https://github.com/dpeerlab/phenograph.
+**NOTE:** This repository is no longer actively maintained. To get the latest version or 
+report issues please go to the fork at https://github.com/dpeerlab/phenograph.
 
 ---
 
